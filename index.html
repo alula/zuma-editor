@@ -169,7 +169,7 @@ const getCurvePoints = (pts, segments) => {
 const getDeltas = (pts) => {
 	"use strict";
 	let tension = 0.5;
-	let numOfSegments = 56;
+	let numOfSegments = 192;
 	let _pts = [], res = [],    // clone array
 		x, y,           // our x,y coords
 		t1x, t2x, t1y, t2y, // tension vectors
@@ -211,50 +211,74 @@ const getDeltas = (pts) => {
 	
 	console.log("calc deltas");
 	let n = 0;
-	const deltas = [];
-	let lx = 0, ly = 0, lz = pts[0].z;
-	
-	const line = (x1, y1, x2, y2) => {
-		x1 = Math.round(x1) * 10;
-		y1 = Math.round(y1) * 10;
-		x2 = Math.round(x2) * 10;
-		y2 = Math.round(y2) * 10;
-		const dx = Math.abs(x2 - x1);
-		const sx = x1 < x2 ? 1 : -1;
-		const dy = -Math.abs(y2 - y1);
-		const sy = y1 < y2 ? 1 : -1;
-		let e2, er = dx + dy, end = false;
-		while (!end) {
-			if ((n++ % 10) === 0) {
-				deltas.push({x: (x1 - lx) * 10 | 0, y: (y1 - ly) * 10 | 0, z: lz});
-				lx = x1;
-				ly = y1;
-			}
-			
-			if (x1 === x2 && y1 === y2) {
-				console.log("end");
-				end = true;
-			} else {
-				e2 = 2 * er;
-				if (e2 > dy) {
-					er += dy;
-					x1 += sx;
-				}
-				if (e2 < dx) {
-					er += dx;
-					y1 += sy;
-				}
-			}
-		}
-	};
+	let deltas = [];
+	let threshold = 4;
+	let lx = pts[0].x * 10, ly = pts[0].y * 10, lz = pts[0].z;
 	
 	let prev = res[0];
 	for (let i = 1; i < res.length; i++) {
 		const pt = res[i];
 		lz = pt.z;
-		line(prev.x, prev.y, pt.x, pt.y);
+		
+		const x1 = prev.x * 10;
+		const y1 = prev.y * 10;
+		const dx = (pt.x * 10) - x1;
+		const dy = (pt.y * 10) - y1;
+		
+		const vecx = dx < 0 ? -1 : 1;
+		const vecy = dy < 0 ? -1 : 1;
+		
+		if (dx == 0 && dy == 0) {
+			continue;
+		} else if (dx == 0) {
+			for (let i = 0; i < (dy * vecy); i++) {
+				let x = x1;
+				let y = y1 + i * vecy;
+				
+				if ((Math.abs((y - ly) * threshold) % threshold) == 0) {
+					let xs = (x - lx) * 50;
+					let ys = (y - ly) * 50;
+					lx = x;
+					ly = y;
+					deltas.push({x: xs, y: ys, z: lz});
+				}
+			}
+		} else if (dy == 0) {
+			for (let i = 0; i < (dx * vecx); i++) {
+				let x = x1 + i * vecx;
+				let y = y1;
+				
+				if ((Math.abs((x - lx) * threshold) % threshold) == 0) {
+					let xs = (x - lx) * 50;
+					let ys = (y - ly) * 50;
+					lx = x;
+					ly = y;
+					deltas.push({x: xs, y: ys, z: lz});
+				}
+			}
+		} else {
+			for (let i = 0; i < (dx * vecx); i++) {
+				let x = x1 + i * vecx;
+				let y = (y1 + (dy / dx) * (i * vecx));
+			
+				n = Math.sqrt(((x - lx) * (x - lx)) + ((y - ly) * (y - ly)));
+				//n = Math.abs(((x - lx) / (y - lx)) * 100);
+
+				if (n > 8) {
+					let xs = (x - lx) * 10;
+					let ys = (y - ly) * 10;
+					console.log(xs, ys);
+					lx = x;
+					ly = y;
+					deltas.push({x: xs, y: ys, z: lz});
+					//deltas.push({x: xs, y: ys, z: lz});
+				}
+			}
+		}
+		
 		prev = pt;
 	}
+	console.log("done?");
 
 	return deltas;
 };
@@ -280,6 +304,11 @@ const clamp = (num, max, min) => Math.max(max, Math.min(min, num));
 	const ctx = mainEl.getContext("2d");
 	const setErr = (err) => state.error = err;
 	
+	const xOff = (800 - 640) / 2;
+	const yOff = (600 - 480) / 2;
+	const aad = (2 / 3) * Math.PI;
+	const headSize = 6;
+	
 	$("#btn-new").onclick = () => {
 		setErr(null);
 		state.points = [{x: -20, y: 50, z: 1}, {x: 100, y: 100, z: 1}, {x: 140, y: 200, z: 1}];
@@ -293,7 +322,6 @@ const clamp = (num, max, min) => Math.max(max, Math.min(min, num));
 		
 		//let deltas = [];
 		const deltas = getDeltas(state.points);
-		console.log(deltas);
 		/*let px = pts[2];
 		let py = pts[3];
 		for (let i = 4; i < pts.length - 1; i += 2) {
@@ -335,18 +363,23 @@ const clamp = (num, max, min) => Math.max(max, Math.min(min, num));
 		dw.setFloat32(off + 4, state.points[0].x - 0.000543, true);
 		dw.setFloat32(off + 8, state.points[0].y - 0.000345, true);
 		for (let i = 1; i < deltas.length; i++) {
-			dw.setInt8(off + 10 + (i * 4), deltas[i].x);
-			dw.setInt8(off + 11 + (i * 4), deltas[i].y);
+			dw.setInt8(off + 10 + (i * 4), clamp(Math.round(deltas[i].x), -127, 127));
+			dw.setInt8(off + 11 + (i * 4), clamp(Math.round(deltas[i].y), -127, 127));
 			dw.setUint8(off + 12 + (i * 4), deltas[i].z == 0 ? 1 : 0);
 			dw.setUint8(off + 13 + (i * 4), deltas[i].z == 2 ? 1 : 0);
 		}
 		
-		let blob = new Blob([buf], {type: "octet/stream"});
-		let url = window.URL.createObjectURL(blob);
-		dlrEl.href = url;
-		dlrEl.download = "level.dat";
-		dlrEl.click();
-		window.URL.revokeObjectURL(url);
+		state.deltas = deltas;
+
+		const download = true;
+		if (download) {
+			let blob = new Blob([buf], {type: "octet/stream"});
+			let url = window.URL.createObjectURL(blob);
+			dlrEl.href = url;
+			dlrEl.download = "level.dat";
+			dlrEl.click();
+			window.URL.revokeObjectURL(url);
+		}
 	};
 	
 	const shapeChange = async (e) => {
@@ -403,11 +436,6 @@ const clamp = (num, max, min) => Math.max(max, Math.min(min, num));
 	};
 	bgEl.onchange = bgChange;
 	if (bgEl.files.length !== 0) bgChange();
-	
-	const xOff = (800 - 640) / 2;
-	const yOff = (600 - 480) / 2;
-	const aad = (2 / 3) * Math.PI;
-	const headSize = 6;
 	
 	mainEl.onmousedown = (e) => {
 		e.preventDefault();
@@ -533,12 +561,26 @@ const clamp = (num, max, min) => Math.max(max, Math.min(min, num));
 			
 				prev = pt;
 			}
+			
+			/*if (state.deltas.length !== 0) {		
+				ctx.fillStyle = "#ff00ff";
+				let delX = state.points[0].x;		
+				let delY = state.points[0].y;
+				
+				for (let i = 0; i < state.deltas.length; i++) {
+					const delta = state.deltas[i];
+					delX += delta.x / 100;
+					delY += delta.y / 100;
+					if (i % 8 != 0) continue;
+					ctx.fillRect(delX - 1, delY - 1, 3, 3);
+				}
+			}*/
 		}
 		ctx.restore();
 		
 		ctx.font = "14px sans-serif";
 		ctx.fillStyle = "#ffffff";
-		ctx.fillText("Zuma Deluxe Level Editor v0.1 - created by Alula", 2, 15);
+		ctx.fillText("Zuma Deluxe Level Editor v0.2 [22/10/2019] - created by Alula", 2, 15);
 		ctx.fillStyle = "#009999";
 		ctx.font = "12px sans-serif";
 		ctx.fillText(`points: ${state.points.length}`, 2, 30);
