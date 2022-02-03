@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Zuma Deluxe Level Editor</title>
+		<style>
+			body {
+				background: black;
+				color: #aaa;
+				font-family: sans-serif;
+				padding: 0;
+				margin: 0;
+			}
+			
+			#main {
+				background-color: black;
+				width: 800px;
+				height: 600px;
+			}
+			
+			.container {
+				text-align: center;
+				background-color: #111;
+				position: absolute;
+				width: 100%;
+				height: 100%;
+				left: 0;
+				right: 0
+				bottom: 0;
+				top: 0;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+			}
+			
+			.app {
+				width: 800px;
+				border-radius: 8px;
+				box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+				overflow: hidden;
+			}
+			
+			.upload {
+				text-align: left;
+				background-color: #222;
+				border-top: #333 1px solid;
+				line-height: 40px;
+			}
+			
+			.toolbar {
+				background-color: #333;
+				text-align: left;
+				border-bottom: #222 2px solid;
+				padding: 4px;
+			}
+			
+			.toolbar button {
+				background: #444;
+				border: 1px #3c3c3c solid;
+				border-radius: 4px;
+				color: #999;
+				font-size: 14px;
+				padding: 2px 4px;
+			}
+			
+			.toolbar button:hover {
+				background: #4a4a4a;
+			}
+			
+			.toolbar button:active {
+				background: #404040;
+			}
+			
+			.toolbar button:disabled {
+				opacity: 0.7;
+				background: #444;
+			}
+			
+			.upload .box {
+				padding: 0 20px;
+			}
+		</style>
+	</head>
+	
+	<body>
+		<div class="container">
+			<div class="app">
+				<noscript>Did you expect this thing would work without JavaScript? Enable it!</noscript>
+				<div class="toolbar">
+					<button id="btn-new">New</button>
+					<button disabled>Undo</button>
+					<button id="btn-save">Save</button>
+				</div>
+				<canvas id="main" width="800px" height="600px">Where do you run this thing?</canvas>
+				<div class="upload">
+					<div class="box">
+						Load shape file: <input id="shape" type="file" accept=".dat"/><br/>
+						Load background: <input id="bg" type="file" accept=".jpg,.jpeg"/>
+					</div>
+					<a id="dlr" style="display:none;">dl</a>
+				</div>
+			</div>
+		</div>
+		<script>
+const readFile = (file) => new Promise((resolve, reject) => {
+	let fr = new FileReader();
+	fr.onload = () => resolve(fr.result);
+	fr.readAsArrayBuffer(file);
+});
+
+const readFileURL = (file) => new Promise((resolve, reject) => {
+	let fr = new FileReader();
+	fr.onload = () => resolve(fr.result);
+	fr.readAsDataURL(file);
+});
+
+// 2 lazy to implement, shamelessly copy-pasted from StackOverflow :^)
+const getCurvePoints = (pts, segments) => {
+	"use strict";
+	let tension = 0.5;
+	let numOfSegments = segments || 8;
+	let _pts = [], res = [],    // clone array
+		x, y,           // our x,y coords
+		t1x, t2x, t1y, t2y, // tension vectors
+		c1, c2, c3, c4,     // cardinal points
+		st, t, i;       // steps based on num. of segments
+
+	for (let i = 0; i < pts.length; i++) {
+		_pts.push(pts[i].x);
+		_pts.push(pts[i].y);
+	}
+	
+	_pts.unshift(pts[0].y);
+	_pts.unshift(pts[0].x);
+	_pts.push(pts[pts.length - 1].x);
+	_pts.push(pts[pts.length - 1].y);
+
+	for (let i = 2; i < (_pts.length - 4); i+=2) {
+		for (let t = 0; t <= numOfSegments; t++) {
+			// calc tension vectors
+			t1x = (_pts[i+2] - _pts[i-2]) * tension;
+			t2x = (_pts[i+4] - _pts[i]) * tension;
+
+			t1y = (_pts[i+3] - _pts[i-1]) * tension;
+			t2y = (_pts[i+5] - _pts[i+1]) * tension;
+
+			// calc step
+			st = t / numOfSegments;
+
+			// calc cardinals
+			c1 =   2 * Math.pow(st, 3)  - 3 * Math.pow(st, 2) + 1; 
+			c2 = -(2 * Math.pow(st, 3)) + 3 * Math.pow(st, 2); 
+			c3 =       Math.pow(st, 3)  - 2 * Math.pow(st, 2) + st; 
+			c4 =       Math.pow(st, 3)  -     Math.pow(st, 2);
+
+			// calc x and y cords with common control vectors
+			x = c1 * _pts[i]    + c2 * _pts[i+2] + c3 * t1x + c4 * t2x;
+			y = c1 * _pts[i+1]  + c2 * _pts[i+3] + c3 * t1y + c4 * t2y;
+
+			//store points in array
+			res.push(x);
+			res.push(y);
+		}
+	}
+
+	return res;
+};
+
+const getDeltas = (pts) => {
+	"use strict";
+	let tension = 0.5;
+	let numOfSegments = 56;
+	let _pts = [], res = [],    // clone array
+		x, y,           // our x,y coords
+		t1x, t2x, t1y, t2y, // tension vectors
+		c1, c2, c3, c4,     // cardinal points
+		st, t, i;       // steps based on num. of segments
+
+	for (let i = 0; i < pts.length; i++) {
+		_pts.push(pts[i].x);
+		_pts.push(pts[i].y);
+	}
+	
+	_pts.unshift(pts[0].y);
+	_pts.unshift(pts[0].x);
+	_pts.push(pts[pts.length - 1].x);
+	_pts.push(pts[pts.length - 1].y);
+
+	console.log("calc segments");
+	for (let i = 2; i < (_pts.length - 4); i+=2) {
+		for (let t = 0; t <= numOfSegments; t++) {
+			t1x = (_pts[i+2] - _pts[i-2]) * tension;
+			t2x = (_pts[i+4] - _pts[i]) * tension;
+
+			t1y = (_pts[i+3] - _pts[i-1]) * tension;
+			t2y = (_pts[i+5] - _pts[i+1]) * tension;
+
+			st = t / numOfSegments;
+
+			c1 =   2 * Math.pow(st, 3)  - 3 * Math.pow(st, 2) + 1; 
+			c2 = -(2 * Math.pow(st, 3)) + 3 * Math.pow(st, 2); 
+			c3 =       Math.pow(st, 3)  - 2 * Math.pow(st, 2) + st; 
+			c4 =       Math.pow(st, 3)  -     Math.pow(st, 2);
+
+			x = c1 * _pts[i]    + c2 * _pts[i+2] + c3 * t1x + c4 * t2x;
+			y = c1 * _pts[i+1]  + c2 * _pts[i+3] + c3 * t1y + c4 * t2y;
+
+			res.push({x: x, y: y, z: pts[i / 2 - 1].z});
+		}
+	}
+	
+	console.log("calc deltas");
+	let n = 0;
+	const deltas = [];
+	let lx = 0, ly = 0, lz = pts[0].z;
+	
+	const line = (x1, y1, x2, y2) => {
+		x1 = Math.round(x1) * 10;
+		y1 = Math.round(y1) * 10;
+		x2 = Math.round(x2) * 10;
+		y2 = Math.round(y2) * 10;
+		const dx = Math.abs(x2 - x1);
+		const sx = x1 < x2 ? 1 : -1;
+		const dy = -Math.abs(y2 - y1);
+		const sy = y1 < y2 ? 1 : -1;
+		let e2, er = dx + dy, end = false;
+		while (!end) {
+			if ((n++ % 10) === 0) {
+				deltas.push({x: (x1 - lx) * 10 | 0, y: (y1 - ly) * 10 | 0, z: lz});
+				lx = x1;
+				ly = y1;
+			}
+			
+			if (x1 === x2 && y1 === y2) {
+				console.log("end");
+				end = true;
+			} else {
+				e2 = 2 * er;
+				if (e2 > dy) {
+					er += dy;
+					x1 += sx;
+				}
+				if (e2 < dx) {
+					er += dx;
+					y1 += sy;
+				}
+			}
+		}
+	};
+	
+	let prev = res[0];
+	for (let i = 1; i < res.length; i++) {
+		const pt = res[i];
+		lz = pt.z;
+		line(prev.x, prev.y, pt.x, pt.y);
+		prev = pt;
+	}
+
+	return deltas;
+};
+
+const clamp = (num, max, min) => Math.max(max, Math.min(min, num));
+
+(() => {
+	"use strict";
+    const $ = (e) => document.querySelector(e);
+	let state = {
+		error: null,
+		image: null,
+		selectedPoint: -1,
+		dragging: false,
+		points: [],
+		deltas: [], // for debugging
+	};
+	
+	const shapeEl = $("#shape");
+	const bgEl = $("#bg");
+	const mainEl = $("#main");
+	const dlrEl = $("#dlr");
+	const ctx = mainEl.getContext("2d");
+	const setErr = (err) => state.error = err;
+	
+	$("#btn-new").onclick = () => {
+		setErr(null);
+		state.points = [{x: -20, y: 50, z: 1}, {x: 100, y: 100, z: 1}, {x: 140, y: 200, z: 1}];
+		state.deltas = [];
+		state.selectedPoint = -1;
+	};
+	
+	$("#btn-save").onclick = () => {
+		setErr(null);
+		state.selectedPoint = -1;
+		
+		//let deltas = [];
+		const deltas = getDeltas(state.points);
+		console.log(deltas);
+		/*let px = pts[2];
+		let py = pts[3];
+		for (let i = 4; i < pts.length - 1; i += 2) {
+			let dx = pts[i] - px;
+			let dy = pts[i + 1] - py;
+			if (dx == 0 && dy == 0) continue;
+			deltas.push(clamp((dx * 100) | 0, -120, 120) | 0);
+			deltas.push(clamp((dy * 100) | 0, -120, 120) | 0);
+			deltas.
+			deltas.push(state.points[Math.ceil(i / (pts.length / 2 - 1)) | 0] == 0 ? 1 : 0);
+			deltas.push(state.points[Math.ceil(i / (pts.length / 2 - 1)) | 0] == 2 ? 1 : 0);
+			px = pts[i];
+			py = pts[i + 1];
+		}
+		deltas.shift();
+		deltas.shift();
+		console.log(deltas);*/
+		
+		let buf = new ArrayBuffer(48 + (state.points.length * 10) + deltas.length * 16);
+		let dw = new DataView(buf);
+		
+		dw.setUint32(0, 0x43555256, false);
+		dw.setUint32(4, 2, true);
+		dw.setUint32(8, 1, true);
+		dw.setUint32(12, 4 + (state.points.length * 10), true);
+		dw.setUint32(16, state.points.length, true);
+		
+		for (let i = 0; i < state.points.length; i++) {
+			const pt = state.points[i];
+			dw.setInt32(20 + i * 10, pt.x, true);
+			dw.setInt32(24 + i * 10, pt.y, true);
+			dw.setUint8(28 + i * 10, pt.z == 0 ? 1 : 0);
+			dw.setUint8(29 + i * 10, pt.z == 2 ? 1 : 0);
+		}
+		
+		//console.log(pts[0]);
+		const off = 20 + (state.points.length * 10);
+		dw.setUint32(off, deltas.length - 2, true);
+		dw.setFloat32(off + 4, state.points[0].x - 0.000543, true);
+		dw.setFloat32(off + 8, state.points[0].y - 0.000345, true);
+		for (let i = 1; i < deltas.length; i++) {
+			dw.setInt8(off + 10 + (i * 4), deltas[i].x);
+			dw.setInt8(off + 11 + (i * 4), deltas[i].y);
+			dw.setUint8(off + 12 + (i * 4), deltas[i].z == 0 ? 1 : 0);
+			dw.setUint8(off + 13 + (i * 4), deltas[i].z == 2 ? 1 : 0);
+		}
+		
+		let blob = new Blob([buf], {type: "octet/stream"});
+		let url = window.URL.createObjectURL(blob);
+		dlrEl.href = url;
+		dlrEl.download = "level.dat";
+		dlrEl.click();
+		window.URL.revokeObjectURL(url);
+	};
+	
+	const shapeChange = async (e) => {
+		console.log("Got shape file change", e);
+		
+		// reset editor state
+		setErr(null);
+		state.points = [];
+		state.deltas = [];
+		state.selectedPoint = -1;
+		
+		let buf = await readFile(shapeEl.files[0]);
+		let dv = new DataView(buf);
+		window.dv = dv;
+		
+		// validate the signature
+		if (dv.getUint32(0) !== 0x43555256) {
+			setErr("Invalid file signature!");
+			return;
+		}
+		
+		let count = dv.getUint32(16, true);
+		console.log(count);
+		
+		if (count < 2) {
+			setErr("A valid level should contain at least two points!");
+			return;
+		}
+		
+		for (let i = 0; i < count; i++) {
+			let idx = i * 10 + 0x14;
+			let point = {
+				x: dv.getInt32(idx, true),
+				y: dv.getInt32(idx + 4, true),
+				z: 1 - dv.getUint8(idx + 8, true) + dv.getUint8(idx + 9, true),
+			};
+			state.points.push(point);
+		}
+	};
+	shapeEl.onchange = shapeChange;
+	if (shapeEl.files.length !== 0) shapeChange();
+	
+	const bgChange = async (e) => {
+		console.log("Got background file change", e);
+		
+		state.image = null;
+		setErr(null);
+		
+		let url = await readFileURL(bgEl.files[0]);
+		let image = new Image();
+		image.src = url;
+		image.onload = () => state.image = image;
+		image.onerror = () => setErr("Error loading background image!");
+	};
+	bgEl.onchange = bgChange;
+	if (bgEl.files.length !== 0) bgChange();
+	
+	const xOff = (800 - 640) / 2;
+	const yOff = (600 - 480) / 2;
+	const aad = (2 / 3) * Math.PI;
+	const headSize = 6;
+	
+	mainEl.onmousedown = (e) => {
+		e.preventDefault();
+		
+		state.dragging = false;
+		state.selectedPoint = -1;
+		const x = e.offsetX - xOff;
+		const y = e.offsetY - yOff;
+		
+		for (let i = 0; i < state.points.length; i++) {
+			const pt = state.points[i];
+			if (x >= (pt.x - 3) && x <= (pt.x + 3) && y >= (pt.y - 3) && y <= (pt.y + 3)) {
+				state.selectedPoint = i;
+				state.dragging = true;
+				break;
+			}
+		}
+	};
+	
+	mainEl.onmouseup = (e) => {
+		e.preventDefault();	
+		state.dragging = false;
+	};
+	
+	mainEl.onmousemove = (e) => {
+		if (state.dragging && state.selectedPoint !== -1) {
+			const i = state.selectedPoint;
+			const x = e.offsetX - xOff;
+			const y = e.offsetY - yOff;
+			
+			state.points[i].x = x;
+			state.points[i].y = y;
+		}
+	};
+	
+	document.onkeydown = (e) => {
+		if (e.key === "s" && state.selectedPoint > 0) {
+			const i = state.selectedPoint;
+			const pt = state.points[i];
+			const prev = state.points[i - 1];
+			const hDeltaX = (pt.x - prev.x) / 2;
+			const hDeltaY = (pt.y - prev.y) / 2;
+			const point = {x: pt.x - hDeltaX, y: pt.y - hDeltaY, z: pt.z};
+			state.points.splice(state.selectedPoint, 0, point);
+		} else if (e.key === "d" && state.selectedPoint !== -1 && state.points.length > 2) {
+			if (state.selectedPoint == (state.points.length - 1)) {
+				state.selectedPoint = state.points.length - 2;
+			}
+			state.points.splice(state.selectedPoint, 1);
+		} else if (e.key === "o" && state.selectedPoint !== -1) {
+			const pt = state.points[state.selectedPoint];
+			if (pt.z > 0) {
+				pt.z--;
+			}
+		} else if (e.key === "p" && state.selectedPoint !== -1) {
+			const pt = state.points[state.selectedPoint];
+			if (pt.z < 2) {
+				pt.z++;
+			}
+		}
+	};
+	
+	const colorSchemes = [
+		["#ff0000", "#ff00ff"],
+		["#ff8800", "#ffff00"],
+		["#0000ff", "#00ffff"],
+	];
+	
+	const draw = () => {
+		ctx.clearRect(0, 0, 800, 600);
+		if (state.image != null && state.image.complete) {
+			ctx.drawImage(state.image, xOff, yOff);
+		}
+		
+		ctx.save();
+		ctx.translate(xOff + 0.5, yOff + 0.5);
+		ctx.strokeStyle = "#00ff00";
+		ctx.strokeRect(0, 0, 640, 480);
+		
+		let prev = null;
+		if (state.points.length !== 0) {
+			if (state.points.length >= 2) {
+				const pts = getCurvePoints(state.points);
+				ctx.lineWidth = 3;
+				ctx.strokeStyle = "#444444";
+				ctx.beginPath();
+				ctx.moveTo(pts[0], pts[1]);
+				for (let i = 2; i < pts.length - 1; i += 2) {
+					ctx.lineTo(pts[i], pts[i + 1]);
+				}
+				ctx.stroke();
+			}
+			ctx.lineWidth = 1;
+			
+			for (let i = 0; i < state.points.length; i++) {
+				const pt = state.points[i];
+				const colors = colorSchemes[pt.z % colorSchemes.length];
+			
+				if (prev != null) {
+					ctx.strokeStyle = state.selectedPoint === i ? colors[1] : colors[0];
+					ctx.beginPath();
+					ctx.moveTo(prev.x, prev.y);
+					ctx.lineTo(pt.x, pt.y);
+					ctx.stroke();
+					
+					// draw vector direction
+					ctx.strokeStyle = colors[1];
+					let angle = Math.atan2(pt.y - prev.y, pt.x - prev.x);
+					let hDeltaX = (pt.x - prev.x) / 2;
+					let hDeltaY = (pt.y - prev.y) / 2;
+					ctx.beginPath();
+					ctx.moveTo(	headSize * Math.cos(angle - aad) + pt.x - hDeltaX,
+								headSize * Math.sin(angle - aad) + pt.y - hDeltaY);
+					ctx.lineTo(	headSize * Math.cos(angle) + pt.x - hDeltaX, 
+								headSize * Math.sin(angle) + pt.y - hDeltaY);
+					ctx.lineTo(	headSize * Math.cos(angle + aad) + pt.x - hDeltaX, 
+								headSize * Math.sin(angle + aad) + pt.y - hDeltaY);
+					ctx.stroke();
+				}
+				
+				ctx.strokeStyle = state.selectedPoint === i ? "#ffffff" : "#999999";
+				ctx.strokeRect(pt.x - 3, pt.y - 3, 6, 6);
+			
+				prev = pt;
+			}
+		}
+		ctx.restore();
+		
+		ctx.font = "14px sans-serif";
+		ctx.fillStyle = "#ffffff";
+		ctx.fillText("Zuma Deluxe Level Editor v0.1 - created by Alula", 2, 15);
+		ctx.fillStyle = "#009999";
+		ctx.font = "12px sans-serif";
+		ctx.fillText(`points: ${state.points.length}`, 2, 30);
+		if (state.selectedPoint !== -1) {
+			const pt = state.points[state.selectedPoint];
+			ctx.fillText(`selected point id: ${state.selectedPoint} x: ${pt.x} y: ${pt.y}, z: ${pt.z}`, 2, 43);
+		}
+		
+		
+		if (state.error) {
+			ctx.fillStyle = "#ff0000";
+			ctx.fillRect(0, 560, 800, 40);
+			ctx.fillStyle = "#ffffff";
+			ctx.fillText(state.error, 2, 575);
+		}
+		
+		ctx.fillStyle = "#aaaaaa";
+		ctx.fillText("[S] to make a split between two points, [D] to remove a point, [P] - raise Z-index, [O] - lower Z-index", 2, 596);
+		
+		window.requestAnimationFrame(draw);
+	}
+	
+	draw();
+})();
+		</script>
+	</body>
+</html>
