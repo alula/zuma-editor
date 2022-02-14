@@ -118,7 +118,7 @@
 		const getCurvePoints = (pts, segments) => {
 			"use strict";
 			let tension = 0.5;
-			let numOfSegments = segments || 8;
+			let numOfSegments = segments || 32;
 			let _pts = [], res = [],    // clone array
 				x, y,           // our x,y coords
 				t1x, t2x, t1y, t2y, // tension vectors
@@ -169,7 +169,7 @@
 		const getDeltas = (pts) => {
 			"use strict";
 			let tension = 0.5;
-			let numOfSegments = 192;
+			let numOfSegments = 256;
 			let _pts = [], linePoints = [],    // clone array
 				x, y,           // our x,y coords
 				t1x, t2x, t1y, t2y, // tension vectors
@@ -533,24 +533,24 @@
 						prev = pt;
 					}
 
-					if (state.deltas.length !== 0) {
-						ctx.fillStyle = "#ff00ff";
-						let delX = state.points[0].x;
-						let delY = state.points[0].y;
+					// if (state.deltas.length !== 0) {
+					// 	ctx.fillStyle = "#ff00ff";
+					// 	let delX = state.points[0].x;
+					// 	let delY = state.points[0].y;
 
-						for (let i = 1; i < state.deltas.length; i++) {
-							const delta = state.deltas[i];
-							delX += delta.x / 100;
-							delY += delta.y / 100;
-							ctx.fillRect(delX, delY, 1, 1);
-						}
-					}
+					// 	for (let i = 1; i < state.deltas.length; i++) {
+					// 		const delta = state.deltas[i];
+					// 		delX += delta.x / 100;
+					// 		delY += delta.y / 100;
+					// 		ctx.fillRect(delX, delY, 1, 1);
+					// 	}
+					// }
 				}
 				ctx.restore();
 
 				ctx.font = "14px sans-serif";
 				ctx.fillStyle = "#ffffff";
-				ctx.fillText("Zuma Deluxe Level Editor v0.3 [14/02/2022] - created by Alula", 2, 15);
+				ctx.fillText("Zuma Deluxe Level Editor v0.3.1 [14/02/2022] - created by Alula", 2, 15);
 				ctx.fillStyle = "#009999";
 				ctx.font = "12px sans-serif";
 				ctx.fillText(`points: ${state.points.length}`, 2, 30);
