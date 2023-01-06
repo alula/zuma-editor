@@ -6,38 +6,57 @@
 	<style>
 		body {
 			background: black;
-			color: #aaa;
+			color: #ecf0f1;
 			font-family: sans-serif;
 			padding: 0;
 			margin: 0;
 		}
 
-		#main {
-			background-color: black;
-			width: 800px;
-			height: 600px;
+		a,
+		a:visited {
+			color: #8adeff;
 		}
 
-		.container {
-			text-align: center;
-			background-color: #111;
+		button {
+			background-color: #ecf0f1;
+			border: #33333310 1px solid;
+			border-radius: 5px;
+			padding: 3px 6px;
+			transition-timing-function: ease-in;
+			transition-duration: 100ms;
+			transition-property: background, border;
+		}
+
+		button:hover {
+			background-color: #ecf0f1e0;
+			border: #33333330 1px solid;
+		}
+
+		button:active {
+			background-color: #ecf0f180;
+		}
+
+		#main {
+			background-color: #151515;
+			background-image: linear-gradient(30deg, #101010 12%, transparent 12.5%, transparent 87%, #101010 87.5%, #101010), linear-gradient(150deg, #101010 12%, transparent 12.5%, transparent 87%, #101010 87.5%, #101010), linear-gradient(30deg, #101010 12%, transparent 12.5%, transparent 87%, #101010 87.5%, #101010), linear-gradient(150deg, #101010 12%, transparent 12.5%, transparent 87%, #101010 87.5%, #101010), linear-gradient(60deg, #10101077 25%, transparent 25.5%, transparent 75%, #10101077 75%, #10101077), linear-gradient(60deg, #10101077 25%, transparent 25.5%, transparent 75%, #10101077 75%, #10101077);
+			background-size: 20px 35px;
+			background-position: 0 0, 0 0, 10px 18px, 10px 18px, 0 0, 10px 18px;
 			position: absolute;
 			width: 100%;
 			height: 100%;
 			left: 0;
-			right: 0 bottom: 0;
 			top: 0;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			min-height: 800px;
+			bottom: 0;
+			right: 0;
 		}
 
-		.app {
-			width: 800px;
-			border-radius: 8px;
-			box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-			overflow: hidden;
+		#statusbox {
+			position: absolute;
+			user-select: none;
+			pointer-events: none;
+			left: 5px;
+			top: 75px;
+			text-shadow: 1px 1px 2px black;
 		}
 
 		.upload {
@@ -47,212 +66,396 @@
 			line-height: 40px;
 		}
 
-		.toolbar {
-			background-color: #333;
+		.keybindbox {
+			overflow: hidden;
+			position: absolute;
+			left: 0;
+			bottom: 0;
 			text-align: left;
-			border-bottom: #222 2px solid;
-			padding: 4px;
+			background-color: #2c3e50;
+			border-radius: 5px;
+			box-shadow: 0 2px 15px rgba(0, 0, 0, 0.5);
+		}
+
+		.title {
+			background-color: #e67e22;
+			font-weight: 700;
+			color: #fff;
+			padding: 4px 8px;
+			display: flex;
+			text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
+		}
+
+		.content {
+			padding: 4px 8px;
+		}
+
+		.keybindbox kbd {
+			padding: 1px 5px;
+			border-radius: 3px;
+			border: 1px solid #bdc3c7;
+			border-bottom-width: 3px;
+			background-color: #ecf0f1;
+			color: #2c3e50;
+			font-family: monospace;
+			font-weight: 600;
+		}
+
+		.keybindbox ul {
+			list-style-type: none;
+			padding: 8px 0;
+			margin: 0;
+		}
+
+		.keybindbox .content {
+			padding: 0 8px;
+			max-height: 0px;
+			transition: max-height 300ms ease-in;
+		}
+
+		.keybindbox .content.show {
+			max-height: 150px;
+		}
+
+		.toolbar {
+			background-color: #e67e22;
+			text-align: left;
+			padding: 5px;
+			height: 32px;
+			position: absolute;
+			left: 0;
+			top: 32px;
+			right: 0;
+			display: flex;
+			gap: 5px;
+			box-shadow: 0 2px 15px rgba(0, 0, 0, 0.5);
+		}
+
+		.toolbar-sub {
+			background-color: #d35400;
+			padding: 5px;
+			height: 22px;
+			position: absolute;
+			left: 0;
+			top: 0;
+			right: 0;
+			display: flex;
+		}
+
+		.toolbar-sub b {
+			color: #ffffff;
 		}
 
 		.toolbar button {
-			background: #444;
-			border: 1px #3c3c3c solid;
-			border-radius: 4px;
+			background: #ecf0f1;
+			border: none;
+			border-radius: 5px;
 			color: #999;
 			font-size: 14px;
-			padding: 2px 4px;
+			padding: 0;
+			min-width: 32px;
+			min-height: 32px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+
+			transition: 300ms background ease-out;
 		}
 
 		.toolbar button:hover {
-			background: #4a4a4a;
+			background: #ffc693;
 		}
 
 		.toolbar button:active {
-			background: #404040;
+			background: #ffc69380;
 		}
 
 		.toolbar button:disabled {
-			opacity: 0.7;
-			background: #444;
+			background: #ecf0f1;
+			opacity: 0.5;
 		}
 
-		.upload .box {
-			padding: 0 20px;
+		/* .toolbar button img {
+			filter: drop-shadow(0 0 1px black);
+		} */
+
+		.overlay {
+			position: absolute;
+			left: 0;
+			top: 0;
+			right: 0;
+			bottom: 0;
+			background-color: rgba(0, 0, 0, 0.7);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.overlay .box {
+			overflow: hidden;
+			background-color: #2c3e50;
+			border-radius: 5px;
+			box-shadow: 0 2px 15px rgba(0, 0, 0, 0.5);
+		}
+
+		input[type="number"] {
+			width: 70px;
+		}
+
+		.filler {
+			flex: 1 0 auto;
 		}
 	</style>
 </head>
 
 <body>
-	<div class="container">
-		<div class="app">
-			<noscript>Did you expect this thing would work without JavaScript? Enable it!</noscript>
-			<div class="toolbar">
-				<button id="btn-new">New</button>
-				<button disabled>Undo</button>
-				<button id="btn-save">Save</button>
-			</div>
-			<canvas id="main" width="800px" height="600px">Where do you run this thing?</canvas>
-			<div class="upload">
-				<div class="box">
-					Load shape file: <input id="shape" type="file" accept=".dat" /><br />
-					Load background: <input id="bg" type="file" accept=".jpg,.jpeg" />
-				</div>
-				<a id="dlr" style="display:none;">dl</a>
-			</div>
+	<noscript>JavaScript not enabled??</noscript>
+	<canvas id="main"></canvas>
+	<div class="toolbar">
+		<button id="btn-new">
+			<img alt="" title="New curve" width="24px" height="24px"
+				src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAsTAAALEwEAmpwYAAACIklEQVR4nO3Xz+sSQRQAcE/1hxQEuXMIunUIOnWrc5cgzBSxQ1+QtvTQQeiH2Z462K3oFnZy9Wu6s1KYbhep6MfBw4BQEIEdWnfH6sXuaN+vdhBZZ9z9Mg+GWcHD+8x7q29iMRky+IZmucBp3Y4soDKg4hAaB8Cn8W94JAqhcQCQn3/EITROAGEIjSOAiEDwBhDeCBEAwhMhCkB4IUQCCA+EaABZQoQSsM6KSYAlKwCyhYKEbCFLtlCwkC1kyRaKXguV+y6oeOLvkQPc77twtTmBRM3299ACHlguFF+5cPc1e2bJO5DdZcnPV2gBd7ruvyQv6zZkGjak6+xzTh/CB+MiqPrn8AJuvXT8ZFO18cKJ39Q/wjd8BqYm8nenjY7tzwf0o4dDAbhhslZ51nwINj4JxDgPb1pZ+I5P+8nPFzXRV4pRdYqVtxQrNsWKGgrAtRYDdFs7CwmvWhQrT7cKuNdzIWew9knUbCDGubUAXiW2Aij1HLiOJ5CcJZ7Sf8CT5mNwzBPrVoDSDsrA++OHhAIKnb1Tr+w+hy/G2fVO/r9KoOEvE10QBihbLqQbDDBoJ4Mlb86rgWrCAN7Kz6pQrFubARjxU0IB3mxzRWdVeGdcCpa8iV4IfQcOBCAf5RYqR/0lLkT9Z7QU9T8yLeqjhLatYY53UKyo3pjMxmVU9cbnjY7TvAOWLijeBYaayoglr4wCX2i2EZN2/MgUKx1vX/Xlv1cM+uM+3BYCAAAAAElFTkSuQmCC">
+		</button>
+		<button id="btn-open">
+			<img alt="" title="Open" width="24px" height="24px"
+				src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iNDgiIGhlaWdodD0iNDgiCnZpZXdCb3g9IjAgMCA0OCA0OCI+CjxwYXRoIGZpbGw9IiNGRkEwMDAiIGQ9Ik0zOCwxMkgyMmwtNC00SDhjLTIuMiwwLTQsMS44LTQsNHYyNGMwLDIuMiwxLjgsNCw0LDRoMzFjMS43LDAsMy0xLjMsMy0zVjE2QzQyLDEzLjgsNDAuMiwxMiwzOCwxMnoiPjwvcGF0aD48cGF0aCBmaWxsPSIjRkZDQTI4IiBkPSJNNDIuMiwxOEgxNS4zYy0xLjksMC0zLjYsMS40LTMuOSwzLjNMOCw0MGgzMS43YzEuOSwwLDMuNi0xLjQsMy45LTMuM2wyLjUtMTRDNDYuNiwyMC4zLDQ0LjcsMTgsNDIuMiwxOHoiPjwvcGF0aD4KPC9zdmc+" />
+		</button>
+		<button id="btn-save">
+			<img alt="" title="Save" width="24px" height="24px"
+				src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAsTAAALEwEAmpwYAAAA7ElEQVR4nO2WsQrCMBRF8zVC3ZQ39C8c/R3BxbWTb7X+gJsU1EWEbrGDINRd/6BjRESoEJDaJCb1HrhzOdz7aIQAAAAvIS7VK9Ek02a1OxgL1b5H83IWtgAbkDAt0BvGb/kowC0lvBDgFhLeCPCXEl4JcKkgEKGBGBNqRP2A+tOtdkKL9d7ITyzNcrtHPEgKrcQo2bSWSLNcjZcnuwI+RECA0YDChJrQqSMubpVyzfFamRP4FQQB1jcgzxcrcdZA8AKuIAhwRyckQxdwBUGAOzohGbqAKwgC/Gzg8bR1jTT5nPYh4u8EAABAuOAOASTBaeDBltsAAAAASUVORK5CYII=">
+		</button>
+		<button disabled>
+			<img alt="" title="Undo" width="24px" height="24px"
+				src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAsTAAALEwEAmpwYAAABlUlEQVR4nO2YS0rDUBSG/4E6UQRdg6+5EweiDsSBC3EBQnUhFd2DoDiSmnOTIAVHHWjuSS0uQhEdKRhJfIC2JbG9Tc6V+8GZNv/fnGcAh8Ph+B/48TashXgHxK+wjjAcA+kDKE6ysIoGz4I4+BZvlQEvngdx54d4awz4egvED13irTBAWbG+9BQv2kCYFWu9r3DRBprRDJRWueKLxzMU337+5j4a0dLoxIc89/EwY+L7xRWIV82Kp3gTxPcliE+yIP0G4iMc88Toi3W0Ri6zGWOtAZWGbg7/JspOIdUVh7CoiJOeNeG1VyS20T+Y4ADiBtnF9ST8eA2KTwqZ8G8WIXaVIN4tUNB7EL3MEZ/mpJEH0eu0F63nGOhA9EET8lRON3oyrt3oSXl+N51TA48QfdST3qgmhUx9VlH6rPwiNgXpWoGJXIMo0kGWpU3OP6++DLQXqpaMwdcJrSCCQZe5IFqGxQbqEEMlB011BsLhT0rTFM150nW0WuMQR5FuE0gp2F78Xs7SMzWdsKRrMvq8w+FwOGAp71hZJyyROa1CAAAAAElFTkSuQmCC">
+		</button>
+		<button disabled>
+			<img alt="" title="Redo" width="24px" height="24px"
+				src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAsTAAALEwEAmpwYAAABpUlEQVR4nO2YzS4EQRSFz2ZsWBFewc8aK8Qa7yKxMJ6ECE9AWMrM3NsIlh0Zc+/4Cy8xLEVLd0hkZKZ7+m+qor6ktpVzbtWpulWAw+Fw/D+89hqshvUDrFVYC2sQDdJDHOkIrDXAkYkb1JtTsNYAR+MVrHOw2EAAkg5INmCtAY6GJeHubSD4zsUBfL9SvJCGzIJ0BywM0kewvseKSzzkGme3k8UIZ10E6Xl+YrXXSrxERcqN8Mxm2QfJZ+Hi+Xe4W+vZxdP9BEiuShPO3eGWzfTiw0CxXgxJfJDdQLhthiWesm6hKLAl7nnOO8Ssl8OpvuRwjIbuky3zMbi9jHpzNGFRSrrIKLykYis1eLhKayVYOLbyqeYtq5ljeY5Z6iWz22mSt74Gku75bkp70JB0+hq40LFU85b2pGR56mvAa6+km7esvp9jQsx6Yva3Cms1wZm9BWOptWaSXWR6CpLV1KEulCxdqBGQLKRu5oyBdM9uA75fSfUGNoqajg/cWhuHHz0tdxNnwlgarXmQePYa+MG7mwbLNkgbYH340/w5HA6Hw4Fi+QJQaihUhFtWdAAAAABJRU5ErkJggg==">
+		</button>
+		<button id="btn-settings">
+			<img alt="" title="Settings" width="24px" height="24px"
+				src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAsTAAALEwEAmpwYAAACoklEQVR4nO2Yz2sTQRTHp+pVhIoH6c14EBQ9CB704sl/QApKceelAS8KgiDV7Hudg6mk7yWVogdPguCp4E9E8KKIUigSBW896EGMkV7VQw9pZJJUzGaTbkrYzMJ+YG/L8vnufGd2dpRKSUlJGZScKR8E4qtA8gqQVzXKHyD+DcRfAWVeuYqHxcOAsgTEG0DS6LpQPl24fmuvco/GGKDMaJR6qDg5LG+M2QXET3qKkzQ0SiVnyuPKRYDkbmLlvXzxRM++u1ybTQD54TDefM6Ux4GYVdwA8fce8vVB5DVKRSN/UXEDKOu9RsDLlyeiyrdC8y8VN5r4Z88K+XwpqvzIAgDK+z5zoJq9MbcvinxrwvNq7AE08ly/JRSI3wZDhMq3AryMPwDxqf4BpDkSQHLZzome8s0ApSuxB7g4U9yzVQCIdPGG53MmZv3GmEa+M5QAKI9jlwfkxWHIa5T6tJEjiZSH1vLpJ1ee+JF9ZuLktf1vQLltt+LOyduJPX1tfjf4pZMa+aYmfgfEP+y2QxN/A5IHmkrHYxIfUJ7kXoyViEIqHw+ez2c08n1N/LnZU5RlIH4T7SPEiyOrzVR+YT+gvN7+F3SE8l6+PNFeFZInr1rnOMsJlVd2G3y2W0pqnuGj2pfTQFIAkpXQE4dRy1u6DqJQatqUDqkArRAd6/yHkctb2j8Z/8SyWD6mQmiPREdQ5QIQOE2wtQm7r12n/wOsKxcAlFqg24Ww++zIBDZhVeUCgPwiEGAleI+dE8GgGvm5cgE9W5rqDNBcbeyELdja2NUoZJQa2dnSeeUCk5NLO+3B64B7+IoxZodyBc/njCZZi7hNXsuahQPKNTyfM0D8cas376T8JrYWtttA/Kz5fbB/TihVjfJUo5xzqjYpKSkqcfwFxmK8WX1m+GYAAAAASUVORK5CYII=">
+		</button>
+	</div>
+	<div class="toolbar-sub">
+		<b>Zuma Deluxe Level Editor</b>
+		<span>&nbsp;(v0.4.0 - Jan 6 2023) - created by <a href="https://github.com/alula"
+				target="_blank">@alula</a></span>
+	</div>
+	<div id="statusbox">
+
+	</div>
+	<div class="keybindbox">
+		<div class="title">
+			Key Cheat Sheet
+			<span class="filler"></span>
+			<button id="kb-toggle">hide</button>
+		</div>
+		<div class="content show" id="kb-cbox">
+			<ul>
+				<li><kbd>S</kbd> to make a split between two points</li>
+				<li><kbd>D</kbd> to remove a point</li>
+				<li><kbd>P</kbd> to raise Z-index</li>
+				<li><kbd>I</kbd> to lower Z-index</li>
+				<li><kbd>R</kbd> to reset and center the view</li>
+			</ul>
 		</div>
 	</div>
+	<div id="upload" class="overlay" style="display:none">
+		<div class="box">
+			<div class="title">Load level files</div>
+			<div class="content">
+				Load shape file: <input id="shape" type="file" accept=".dat" /><br />
+				Load background: <input id="bg" type="file" accept=".jpg,.jpeg" /><br />
+
+				<button id="uw-close">Close</button>
+			</div>
+		</div>
+		<a id="dlr" style="display:none;">dl</a>
+	</div>
+	<div id="settings" class="overlay" style="display:none">
+		<div class="box">
+			<div class="title">Settings</div>
+			<div class="content">
+				<div>
+					<b>Custom level dimensions</b><br />
+					This option is meant for use with hacks that change Zuma's window size.<br />
+					<input id="sw-width" type="number" min="1" max="4096" value="640" />x<input id="sw-height"
+						type="number" min="1" max="4096" value="480" />
+
+					<button id="sw-reset">Reset to 640x480</button><br /><br />
+
+					<input id="sw-pixellock" type="checkbox" />
+					<label for="sw-pixellock"><b>Lock points to pixels</b></label><br />
+					If disabled, the level points won't be clamped to pixel grid.
+					<br /><br />
+				</div>
+
+				<button id="sw-close">Close</button>
+			</div>
+		</div>
+		<a id="dlr" style="display:none;">dl</a>
+	</div>
 	<script>
-		const readFile = (file) => new Promise((resolve, reject) => {
-			let fr = new FileReader();
-			fr.onload = () => resolve(fr.result);
-			fr.readAsArrayBuffer(file);
-		});
-
-		const readFileURL = (file) => new Promise((resolve, reject) => {
-			let fr = new FileReader();
-			fr.onload = () => resolve(fr.result);
-			fr.readAsDataURL(file);
-		});
-
-		// 2 lazy to implement, shamelessly copy-pasted from StackOverflow :^)
-		const getCurvePoints = (pts, segments) => {
+		(() => {
 			"use strict";
-			let tension = 0.5;
-			let numOfSegments = segments || 32;
-			let _pts = [], res = [],    // clone array
-				x, y,           // our x,y coords
-				t1x, t2x, t1y, t2y, // tension vectors
-				c1, c2, c3, c4,     // cardinal points
-				st, t, i;       // steps based on num. of segments
+			const setStorage = (key, value) => {
+				localStorage.setItem(key, JSON.stringify(value));
+			};
 
-			for (let i = 0; i < pts.length; i++) {
-				_pts.push(pts[i].x);
-				_pts.push(pts[i].y);
-			}
+			const getStorage = (key, value) => {
+				return JSON.parse(localStorage.getItem(key) || "null");
+			};
 
-			_pts.unshift(pts[0].y);
-			_pts.unshift(pts[0].x);
-			_pts.push(pts[pts.length - 1].x);
-			_pts.push(pts[pts.length - 1].y);
+			const tmpBuf = new DataView(new ArrayBuffer(8));
+			const clampF32 = (n) => {
+				tmpBuf.setFloat32(0, n, true);
+				return tmpBuf.getFloat32(0, true);
+			};
 
-			for (let i = 2; i < (_pts.length - 4); i += 2) {
-				for (let t = 0; t <= numOfSegments; t++) {
-					// calc tension vectors
-					t1x = (_pts[i + 2] - _pts[i - 2]) * tension;
-					t2x = (_pts[i + 4] - _pts[i]) * tension;
+			const readFile = (file) => new Promise((resolve, reject) => {
+				let fr = new FileReader();
+				fr.onload = () => resolve(fr.result);
+				fr.readAsArrayBuffer(file);
+			});
 
-					t1y = (_pts[i + 3] - _pts[i - 1]) * tension;
-					t2y = (_pts[i + 5] - _pts[i + 1]) * tension;
+			const readFileURL = (file) => new Promise((resolve, reject) => {
+				let fr = new FileReader();
+				fr.onload = () => resolve(fr.result);
+				fr.readAsDataURL(file);
+			});
 
-					// calc step
-					st = t / numOfSegments;
+			// 2 lazy to implement, shamelessly copy-pasted from StackOverflow :^)
+			const getCurvePoints = (pts, segments) => {
+				let tension = 0.5;
+				let numOfSegments = segments || 32;
+				let _pts = [], res = [],    // clone array
+					x, y,           // our x,y coords
+					t1x, t2x, t1y, t2y, // tension vectors
+					c1, c2, c3, c4,     // cardinal points
+					st, t, i;       // steps based on num. of segments
 
-					// calc cardinals
-					c1 = 2 * Math.pow(st, 3) - 3 * Math.pow(st, 2) + 1;
-					c2 = -(2 * Math.pow(st, 3)) + 3 * Math.pow(st, 2);
-					c3 = Math.pow(st, 3) - 2 * Math.pow(st, 2) + st;
-					c4 = Math.pow(st, 3) - Math.pow(st, 2);
-
-					// calc x and y cords with common control vectors
-					x = c1 * _pts[i] + c2 * _pts[i + 2] + c3 * t1x + c4 * t2x;
-					y = c1 * _pts[i + 1] + c2 * _pts[i + 3] + c3 * t1y + c4 * t2y;
-
-					//store points in array
-					res.push(x);
-					res.push(y);
+				for (let i = 0; i < pts.length; i++) {
+					_pts.push(pts[i].x);
+					_pts.push(pts[i].y);
 				}
-			}
 
-			return res;
-		};
+				_pts.unshift(pts[0].y);
+				_pts.unshift(pts[0].x);
+				_pts.push(pts[pts.length - 1].x);
+				_pts.push(pts[pts.length - 1].y);
 
-		const getDeltas = (pts) => {
-			"use strict";
-			let tension = 0.5;
-			let numOfSegments = 256;
-			let _pts = [], linePoints = [],    // clone array
-				x, y,           // our x,y coords
-				t1x, t2x, t1y, t2y, // tension vectors
-				c1, c2, c3, c4,     // cardinal points
-				st, t, i;       // steps based on num. of segments
+				for (let i = 2; i < (_pts.length - 4); i += 2) {
+					for (let t = 0; t <= numOfSegments; t++) {
+						// calc tension vectors
+						t1x = (_pts[i + 2] - _pts[i - 2]) * tension;
+						t2x = (_pts[i + 4] - _pts[i]) * tension;
 
-			for (let i = 0; i < pts.length; i++) {
-				_pts.push(pts[i].x);
-				_pts.push(pts[i].y);
-			}
+						t1y = (_pts[i + 3] - _pts[i - 1]) * tension;
+						t2y = (_pts[i + 5] - _pts[i + 1]) * tension;
 
-			_pts.unshift(pts[0].y);
-			_pts.unshift(pts[0].x);
-			_pts.push(pts[pts.length - 1].x);
-			_pts.push(pts[pts.length - 1].y);
+						// calc step
+						st = t / numOfSegments;
 
-			console.log("calc segments");
-			for (let i = 2; i < (_pts.length - 4); i += 2) {
-				for (let t = 0; t <= numOfSegments; t++) {
-					t1x = (_pts[i + 2] - _pts[i - 2]) * tension;
-					t2x = (_pts[i + 4] - _pts[i]) * tension;
+						// calc cardinals
+						c1 = 2 * Math.pow(st, 3) - 3 * Math.pow(st, 2) + 1;
+						c2 = -(2 * Math.pow(st, 3)) + 3 * Math.pow(st, 2);
+						c3 = Math.pow(st, 3) - 2 * Math.pow(st, 2) + st;
+						c4 = Math.pow(st, 3) - Math.pow(st, 2);
 
-					t1y = (_pts[i + 3] - _pts[i - 1]) * tension;
-					t2y = (_pts[i + 5] - _pts[i + 1]) * tension;
+						// calc x and y cords with common control vectors
+						x = c1 * _pts[i] + c2 * _pts[i + 2] + c3 * t1x + c4 * t2x;
+						y = c1 * _pts[i + 1] + c2 * _pts[i + 3] + c3 * t1y + c4 * t2y;
 
-					st = t / numOfSegments;
-
-					c1 = 2 * Math.pow(st, 3) - 3 * Math.pow(st, 2) + 1;
-					c2 = -(2 * Math.pow(st, 3)) + 3 * Math.pow(st, 2);
-					c3 = Math.pow(st, 3) - 2 * Math.pow(st, 2) + st;
-					c4 = Math.pow(st, 3) - Math.pow(st, 2);
-
-					x = c1 * _pts[i] + c2 * _pts[i + 2] + c3 * t1x + c4 * t2x;
-					y = c1 * _pts[i + 1] + c2 * _pts[i + 3] + c3 * t1y + c4 * t2y;
-
-					linePoints.push({ x: x, y: y, z: pts[i / 2 - 1].z });
-				}
-			}
-
-			console.log("calc deltas");
-			let n = 0;
-			let deltas = [];
-			let lx = pts[0].x * 100, ly = pts[0].y * 100, lz = pts[0].z;
-
-			let prev = linePoints[0];
-			for (let i = 1; i < linePoints.length; i++) {
-				const pt = linePoints[i];
-				lz = pt.z;
-
-				const x1 = prev.x * 100;
-				const y1 = prev.y * 100;
-				const delX = (pt.x * 100) - x1;
-				const delY = (pt.y * 100) - y1;
-				const dist = Math.sqrt(delX * delX + delY * delY);
-
-				const tanX = delX / dist;
-				const tanY = delY / dist;
-				for (let j = 0; j < dist; j++) {
-					const x = x1 + tanX * j;
-					const y = y1 + tanY * j;
-
-					const distL = Math.sqrt((x - lx) * (x - lx) + (y - ly) * (y - ly));
-					if (distL >= 99.8) {
-						console.log(distL, x, y);
-						const dx = x - lx;
-						const dy = y - ly;
-						lx = x;
-						ly = y;
-						deltas.push({ x: dx, y: dy, z: lz });
+						res.push(x);
+						res.push(y);
 					}
 				}
 
-				prev = pt;
-			}
-			console.log("done?");
+				return res;
+			};
 
-			return deltas;
-		};
+			const getDeltas = (pts) => {
+				let tension = 0.5;
+				let numOfSegments = 256;
+				let _pts = [], linePoints = [],    // clone array
+					x, y,           // our x,y coords
+					t1x, t2x, t1y, t2y, // tension vectors
+					c1, c2, c3, c4,     // cardinal points
+					st, t, i;       // steps based on num. of segments
 
-		const clamp = (num, max, min) => Math.max(max, Math.min(min, num));
+				for (let i = 0; i < pts.length; i++) {
+					_pts.push(pts[i].x);
+					_pts.push(pts[i].y);
+				}
 
-		(() => {
-			"use strict";
+				_pts.unshift(pts[0].y);
+				_pts.unshift(pts[0].x);
+				_pts.push(pts[pts.length - 1].x);
+				_pts.push(pts[pts.length - 1].y);
+
+				for (let i = 2; i < (_pts.length - 4); i += 2) {
+					for (let t = 0; t <= numOfSegments; t++) {
+						t1x = (_pts[i + 2] - _pts[i - 2]) * tension;
+						t2x = (_pts[i + 4] - _pts[i]) * tension;
+
+						t1y = (_pts[i + 3] - _pts[i - 1]) * tension;
+						t2y = (_pts[i + 5] - _pts[i + 1]) * tension;
+
+						st = t / numOfSegments;
+
+						c1 = 2 * Math.pow(st, 3) - 3 * Math.pow(st, 2) + 1;
+						c2 = -(2 * Math.pow(st, 3)) + 3 * Math.pow(st, 2);
+						c3 = Math.pow(st, 3) - 2 * Math.pow(st, 2) + st;
+						c4 = Math.pow(st, 3) - Math.pow(st, 2);
+
+						x = c1 * _pts[i] + c2 * _pts[i + 2] + c3 * t1x + c4 * t2x;
+						y = c1 * _pts[i + 1] + c2 * _pts[i + 3] + c3 * t1y + c4 * t2y;
+
+						linePoints.push({ x: x, y: y, z: pts[i / 2 - 1].z });
+					}
+				}
+
+				let n = 0;
+				let deltas = [];
+				let lx = pts[0].x * 100, ly = pts[0].y * 100, lz = pts[0].z;
+
+				let prev = linePoints[0];
+				for (let i = 1; i < linePoints.length; i++) {
+					const pt = linePoints[i];
+					lz = pt.z;
+
+					const x1 = prev.x * 100;
+					const y1 = prev.y * 100;
+					const delX = (pt.x * 100) - x1;
+					const delY = (pt.y * 100) - y1;
+					const dist = Math.sqrt(delX * delX + delY * delY);
+
+					const tanX = delX / dist;
+					const tanY = delY / dist;
+					for (let j = 0; j < dist; j++) {
+						const x = x1 + tanX * j;
+						const y = y1 + tanY * j;
+
+						const distL = Math.sqrt((x - lx) * (x - lx) + (y - ly) * (y - ly));
+						if (distL >= 99.8) {
+							console.log(distL, x, y);
+							const dx = x - lx;
+							const dy = y - ly;
+							lx = x;
+							ly = y;
+							deltas.push({ x: dx, y: dy, z: lz });
+						}
+					}
+
+					prev = pt;
+				}
+
+				return deltas;
+			};
+
+			const clamp = (num, max, min) => Math.max(max, Math.min(min, num));
 			const $ = (e) => document.querySelector(e);
 			let state = {
 				error: null,
@@ -265,15 +468,72 @@
 
 			const shapeEl = $("#shape");
 			const bgEl = $("#bg");
+			/** @type {HTMLDivElement} */
+			const statusBox = $("#statusbox");
+			/** @type {HTMLCanvasElement} */
 			const mainEl = $("#main");
 			const dlrEl = $("#dlr");
+			/** @type {HTMLDivElement} */
+			const settingsOvl = $("#settings");
+			/** @type {HTMLDivElement} */
+			const uploadOvl = $("#upload");
+			/** @type {HTMLDivElement} */
+			const kbContentBox = $("#kb-cbox");
+			/** @type {HTMLButtonElement} */
+			const kbToggle = $("#kb-toggle");
 			const ctx = mainEl.getContext("2d");
 			const setErr = (err) => state.error = err;
 
-			const xOff = (800 - 640) / 2;
-			const yOff = (600 - 480) / 2;
+			mainEl.width = window.innerWidth;
+			mainEl.height = window.innerHeight;
+			let oldWidth = mainEl.width;
+			let oldHeight = mainEl.height;
+
+			let screenOptions = new Proxy(getStorage("screen-options") || { version: 0 }, {
+				set(obj, prop, val) {
+					obj[prop] = val;
+					setStorage("screen-options", { ...obj, [prop]: val });
+					return true;
+				}
+			});
+
+			if ((screenOptions.version || 0) < 1) {
+				screenOptions.version = 1;
+				screenOptions.width = 640;
+				screenOptions.height = 480;
+				screenOptions.pixelLock = true;
+			}
+
+			$("#sw-width").value = screenOptions.width;
+			$("#sw-height").value = screenOptions.height;
+			$("#sw-pixellock").checked = screenOptions.pixelLock;
+
+			let mousePos = [0, 0];
+			let mousePosPrev = [0, 0];
+			let mouseDelta = [0, 0];
+			let camDragging = false;
+
+			let xOff = ((mainEl.width - screenOptions.width) / 2) | 0;
+			let yOff = ((mainEl.height - screenOptions.height) / 2) | 0;
+			let xVel = 0;
+			let yVel = 0;
+			let scale = 1.0;
+			let scaleTarget = 1.0;
 			const aad = (2 / 3) * Math.PI;
 			const headSize = 6;
+
+			let cBoxHidden = getStorage("keybind-hide") || false;
+			if (cBoxHidden) {
+				kbToggle.innerText = "show";
+				kbContentBox.classList.remove("show");
+			}
+
+			window.addEventListener("resize", () => {
+				oldWidth = mainEl.width;
+				oldHeight = mainEl.height;
+				mainEl.width = window.innerWidth;
+				mainEl.height = window.innerHeight;
+			});
 
 			$("#btn-new").onclick = () => {
 				setErr(null);
@@ -332,6 +592,55 @@
 					window.URL.revokeObjectURL(url);
 				}
 			};
+
+			$("#btn-open").onclick = () => {
+				uploadOvl.style.display = "";
+			};
+
+			$("#uw-close").onclick = () => {
+				uploadOvl.style.display = "none";
+			};
+
+			$("#btn-settings").onclick = () => {
+				settingsOvl.style.display = "";
+			};
+
+			$("#sw-width").onchange = (e) => {
+				screenOptions.width = Number(e.target.value);
+			};
+
+			$("#sw-height").onchange = (e) => {
+				screenOptions.height = Number(e.target.value);
+			};
+
+			$("#sw-pixellock").onchange = (e) => {
+				screenOptions.pixelLock = e.target.checked;
+			}
+
+			$("#sw-reset").onclick = (e) => {
+				screenOptions.width = 640;
+				screenOptions.height = 480;
+				$("#sw-width").value = screenOptions.width;
+				$("#sw-height").value = screenOptions.height;
+			};
+
+			$("#sw-close").onclick = () => {
+				settingsOvl.style.display = "none";
+			};
+
+			kbToggle.onclick = () => {
+				if (cBoxHidden) {
+					kbToggle.innerText = "hide";
+					kbContentBox.classList.add("show");
+					cBoxHidden = false;
+				} else {
+					kbToggle.innerText = "show";
+					kbContentBox.classList.remove("show");
+					cBoxHidden = true;
+				}
+
+				setStorage("keybind-hide", cBoxHidden);
+			}
 
 			const shapeChange = async (e) => {
 				console.log("Got shape file change", e);
@@ -408,39 +717,65 @@
 			bgEl.onchange = bgChange;
 			if (bgEl.files.length !== 0) bgChange();
 
+			mainEl.oncontextmenu = (e) => e.preventDefault();
+
 			mainEl.onmousedown = (e) => {
 				e.preventDefault();
+				if (e.button === 0) {
+					state.dragging = false;
+					state.selectedPoint = -1;
+					const x = (e.offsetX - xOff) / scale;
+					const y = (e.offsetY - yOff) / scale;
 
-				state.dragging = false;
-				state.selectedPoint = -1;
-				const x = e.offsetX - xOff;
-				const y = e.offsetY - yOff;
-
-				for (let i = 0; i < state.points.length; i++) {
-					const pt = state.points[i];
-					if (x >= (pt.x - 3) && x <= (pt.x + 3) && y >= (pt.y - 3) && y <= (pt.y + 3)) {
-						state.selectedPoint = i;
-						state.dragging = true;
-						break;
+					for (let i = 0; i < state.points.length; i++) {
+						const pt = state.points[i];
+						if (x >= (pt.x - 3) && x <= (pt.x + 3) && y >= (pt.y - 3) && y <= (pt.y + 3)) {
+							state.selectedPoint = i;
+							state.dragging = true;
+							break;
+						}
 					}
+				}
+
+				if (e.button === 2) {
+					camDragging = true;
 				}
 			};
 
 			mainEl.onmouseup = (e) => {
 				e.preventDefault();
-				state.dragging = false;
+				if (e.button === 0) {
+					state.dragging = false;
+				}
+
+				if (e.button === 2) {
+					camDragging = false;
+				}
 			};
 
 			mainEl.onmousemove = (e) => {
+				mousePos[0] = e.offsetX;
+				mousePos[1] = e.offsetY;
+
 				if (state.dragging && state.selectedPoint !== -1) {
 					const i = state.selectedPoint;
-					const x = e.offsetX - xOff;
-					const y = e.offsetY - yOff;
+					let x = (e.offsetX - xOff) / scale;
+					let y = (e.offsetY - yOff) / scale;
 
-					state.points[i].x = x;
-					state.points[i].y = y;
+					if (screenOptions.pixelLock) {
+						x |= 0;
+						y |= 0;
+					}
+
+					state.points[i].x = clampF32(x);
+					state.points[i].y = clampF32(y);
 				}
 			};
+
+			mainEl.onwheel = (e) => {
+				e.preventDefault();
+				scaleTarget = Math.max(0.25, Math.min(10, scaleTarget + e.deltaY / 500));
+			}
 
 			document.onkeydown = (e) => {
 				if (e.key === "s" && state.selectedPoint > 0) {
@@ -466,6 +801,13 @@
 					if (pt.z < 2) {
 						pt.z++;
 					}
+				} else if (e.key === "r") {
+					xOff = ((mainEl.width - screenOptions.width) / 2) | 0;
+					yOff = ((mainEl.height - screenOptions.height) / 2) | 0;
+					xVel = 0;
+					yVel = 0;
+					scale = 1.0;
+					scaleTarget = 1.0;
 				}
 			};
 
@@ -475,16 +817,46 @@
 				["#0000ff", "#00ffff"],
 			];
 
+			let lastTime = Date.now();
+			let curTime = Date.now();
+			let delta = 0; // in seconds
+			const maxDelta = 100;
+
 			const draw = () => {
-				ctx.clearRect(0, 0, 800, 600);
-				if (state.image != null && state.image.complete) {
-					ctx.drawImage(state.image, xOff, yOff);
-				}
+				lastTime = curTime;
+				curTime = Date.now();
+				delta = Math.min(curTime - lastTime, maxDelta) / 1000;
+
+				mouseDelta[0] = mousePos[0] - mousePosPrev[0];
+				mouseDelta[1] = mousePos[1] - mousePosPrev[1];
+				mousePosPrev[0] = mousePos[0];
+				mousePosPrev[1] = mousePos[1];
+
+				const deltaChange = (scaleTarget - scale) * 10 * delta;
+				scale += deltaChange;
+
+				xOff = -(mousePos[0] - xOff) * scale / (scale - deltaChange) + mousePos[0];
+				yOff = -(mousePos[1] - yOff) * scale / (scale - deltaChange) + mousePos[1];
+
+				xOff += xVel;
+				yOff += yVel;
+
+				const decel = Math.pow(0.5, delta * 6);
+				xVel *= decel;
+				yVel *= decel;
+
+				ctx.clearRect(0, 0, mainEl.width, mainEl.height);
 
 				ctx.save();
-				ctx.translate(xOff + 0.5, yOff + 0.5);
+				ctx.translate(xOff | 0, yOff | 0);
+				ctx.scale(scale, scale);
+				if (state.image != null && state.image.complete) {
+					ctx.drawImage(state.image, 0, 0);
+				}
+
+				ctx.translate(0.5, 0.5);
 				ctx.strokeStyle = "#00ff00";
-				ctx.strokeRect(0, 0, 640, 480);
+				ctx.strokeRect(0, 0, screenOptions.width, screenOptions.height);
 
 				let prev = null;
 				if (state.points.length !== 0) {
@@ -548,17 +920,12 @@
 				}
 				ctx.restore();
 
-				ctx.font = "14px sans-serif";
-				ctx.fillStyle = "#ffffff";
-				ctx.fillText("Zuma Deluxe Level Editor v0.3.1 [14/02/2022] - created by Alula", 2, 15);
-				ctx.fillStyle = "#009999";
-				ctx.font = "12px sans-serif";
-				ctx.fillText(`points: ${state.points.length}`, 2, 30);
+				statusBox.innerText = "";
+				statusBox.innerText += `points: ${state.points.length}\n`;
 				if (state.selectedPoint !== -1) {
 					const pt = state.points[state.selectedPoint];
-					ctx.fillText(`selected point id: ${state.selectedPoint} x: ${pt.x} y: ${pt.y}, z: ${pt.z}`, 2, 43);
+					statusBox.innerText += `selected point id: ${state.selectedPoint} x: ${pt.x} y: ${pt.y}, z: ${pt.z}\n`;
 				}
-
 
 				if (state.error) {
 					ctx.fillStyle = "#ff0000";
@@ -567,8 +934,10 @@
 					ctx.fillText(state.error, 2, 575);
 				}
 
-				ctx.fillStyle = "#aaaaaa";
-				ctx.fillText("[S] to make a split between two points, [D] to remove a point, [P] - raise Z-index, [O] - lower Z-index", 2, 596);
+				if (camDragging) {
+					xVel = mouseDelta[0];
+					yVel = mouseDelta[1];
+				}
 
 				window.requestAnimationFrame(draw);
 			}
